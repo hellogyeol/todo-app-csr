@@ -1,17 +1,8 @@
-# todo-app-csr
-
-1. 필요 라이브러리 설치
+#### 필요 라이브러리
 - express
-- mongodb
-- dotenv
-
-1. 서버가 HTML 파일을 반환하도록 express 코드 작성
-- 정적 파일 제공 설정 public
-
-1. mongodb 연결 코드 추가
-- .env로 api key 분리
-
-1. /todoList GET 요청 시 DB에 todoList 조회 후 반환
-
-1. HTML에서 비동기 요청으로 todoList 조회
-
+  - Node.js를 위한 웹프레임워크이다.
+- mongodb & dotenv
+  - 데이터는 Mongo DB에 저장한다.
+  - Mongo DB는 API key를 발급 받아 적용시켜야 하는데, key를 노출시키지 않기 위해 dotenv를 사용한다.
+  - `.env` 파일을 생성하고 key를 변수에 할당한다. 이후 DB와 통신이 필요할 때 변수를 불러와 사용한다.
+  - `.env` 파일은 원격 저장소에 올리지 않도록 주의한다. `.gitignore`에 추가 해두도록 한다.
