@@ -26,7 +26,7 @@ app.get('/', (req, res) => {
   res.sendFile(`${__dirname}/index.html`);
 });
 
-/* DB에서 To-Do 리스트 가져오기 */
+/* DB에서 To-Do 리스트 조회 후 전달 */
 app.get('/todolist', (req, res) => {
   getToDoList();
   async function getToDoList() {
@@ -38,6 +38,57 @@ app.get('/todolist', (req, res) => {
     res.send(todoList);
   }
 });
+
+/* DB에 신규 To-Do 추가 후 리스트 전달 */
+app.post('/todo', (req, res) => {
+  addTodo();
+  async function addTodo() {
+    await client.connect();
+    const col = client.db('csrDb').collection('csrCol');
+    await col.insertOne({
+      id: String(Date.now()),
+      content: req.body.content
+    });
+    const todoList = await col.find({}).toArray();
+    console.log(todoList);
+
+    res.send(todoList);
+  }
+});
+
+app.delete('/todo', (req, res) => {
+  deleteTodo()
+  async function deleteTodo() {
+    await client.connect();
+    const col = client.db('csrDb').collection('csrCol');
+    await col.deleteOne({id: req.body.id});
+    const todoList = await col.find({}).toArray();
+    console.log(todoList);
+
+    res.send(todoList);
+  }
+});
+
+
+
+
+
+app.delete('/del', (req, res) => {
+  del()
+  async function del() {
+    await client.connect();
+    const col = client.db('csrDb').collection('csrCol');
+    await col.deleteMany({})
+    const todoList = await col.find({}).toArray();
+    console.log(todoList);
+
+    res.send(todoList);
+  }
+});
+
+
+
+
 
 /* 사용할 포트 지정 */
 app.listen(port, () => {
