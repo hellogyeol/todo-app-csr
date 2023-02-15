@@ -1,3 +1,5 @@
+/* Mongo DB */
+
 /* dotenv */
 require('dotenv').config();
 
@@ -6,91 +8,102 @@ const { MongoClient } = require("mongodb");
 const url = process.env.DB_URL;  // .env 파일에서 API key 불러오기
 const client = new MongoClient(url);
 
+
+/* Express */
+
 /* express 사용에 필요한 변수 */
 const express = require('express');
 const app = express();
-const port = 3000;
+const port = 3000;  // 사용할 포트 번호
 
-/* express 정적 파일 제공 */
-app.use(express.static('public'));
+/* 정적 파일 제공 */
+app.use(express.static('public'));  // public 디렉토리에 있는 파일 제공
 
-/*
-  DB 데이터를 JSON으로 수신
-  Mongo DB의 body-parser 대신 사용한다
-*/
-app.use(express.json());
-app.use(express.urlencoded({extended: true}));
+/* 클라이언트의 fetch(body) 요청 해석 */
+app.use(express.urlencoded({extended: true}));  // form으로 전달 받은 값 인코딩
+app.use(express.json());  // JSON 데이터 해석
 
-/* 최상위 URL로 GET 요청 시 index.html 파일 응답 */
+/* 라우팅 */
 app.get('/', (req, res) => {
-  res.sendFile(`${__dirname}/index.html`);
+  res.sendFile(`${__dirname}/index.html`);  // HTML 템플릿
 });
 
-/* DB에서 To-Do 리스트 조회 후 전달 */
 app.get('/todolist', (req, res) => {
-  getToDoList();
-  async function getToDoList() {
-    await client.connect();
-    const col = client.db('csrDb').collection('csrCol');
-    const todoList = await col.find({}).toArray();
-    console.log(todoList);
-
-    res.send(todoList);
-  }
+  renderToDoList(res);
 });
 
-/* DB에 신규 To-Do 추가 후 리스트 전달 */
-app.post('/todo', (req, res) => {
-  addTodo();
-  async function addTodo() {
-    await client.connect();
-    const col = client.db('csrDb').collection('csrCol');
-    await col.insertOne({
-      id: String(Date.now()),
-      content: req.body.content
-    });
-    const todoList = await col.find({}).toArray();
-    console.log(todoList);
+app.delete('/todolist', (req, res) => {
+  clearTodoList(res);
+});
 
-    res.send(todoList);
-  }
+app.post('/todo', (req, res) => {
+  addTodo(req, res);
 });
 
 app.delete('/todo', (req, res) => {
-  deleteTodo()
-  async function deleteTodo() {
-    await client.connect();
-    const col = client.db('csrDb').collection('csrCol');
-    await col.deleteOne({id: req.body.id});
-    const todoList = await col.find({}).toArray();
-    console.log(todoList);
-
-    res.send(todoList);
-  }
+  deleteTodo(req, res);
 });
 
-
-
-
-
-app.delete('/del', (req, res) => {
-  del()
-  async function del() {
-    await client.connect();
-    const col = client.db('csrDb').collection('csrCol');
-    await col.deleteMany({})
-    const todoList = await col.find({}).toArray();
-    console.log(todoList);
-
-    res.send(todoList);
-  }
-});
-
-
-
-
-
-/* 사용할 포트 지정 */
+/* 웹서버 포트 지정 */
 app.listen(port, () => {
   console.log(`To-Do app listening on port ${port}`);
 });
+
+
+/* 함수 선언 */
+
+/**
+ * To-Do 목록 조회 함수.
+ * DB에서 목록을 조회 후 클라이언트에게 전달
+ */
+async function renderToDoList(res) {
+  await client.connect();
+  const col = client.db('csrDb').collection('csrCol');
+  const todoList = await col.find({}).toArray();
+  console.log(todoList);
+
+  res.send(todoList);
+}
+
+/**
+ * To-Do 목록 초기화 함수.
+ * DB에서 목록을 초기화한 후 클라이언트에게 전달
+ */
+async function clearTodoList(res) {
+  await client.connect();
+  const col = client.db('csrDb').collection('csrCol');
+  await col.deleteMany({})
+  const todoList = await col.find({}).toArray();
+
+  res.send(todoList);
+}
+
+/**
+ * To-Do 생성 함수.
+ * 새로운 To-Do를 DB에 추가 후 전체 목록을 클라이언트에게 전달
+ */
+async function addTodo(req, res) {
+  await client.connect();
+  const col = client.db('csrDb').collection('csrCol');
+  await col.insertOne({
+    id: String(Date.now()),  // 현재 시각의 타임스탬프를 고유 ID로 설정
+    content: req.body.content  // form으로 전달 받은 사용자 입력값
+  });
+  const todoList = await col.find({}).toArray();
+
+  res.send(todoList);
+}
+
+/**
+ * To-Do 삭제 함수.
+ * 선택한 To-Do의 HTML 요소 ID와 일치하는 ID를 가진 항목을 DB에서 삭제 후
+ * 전체 목록을 클라이언트에게 전달
+ */
+async function deleteTodo(req, res) {
+  await client.connect();
+  const col = client.db('csrDb').collection('csrCol');
+  await col.deleteOne({id: req.body.id});  // 해당 ID를 가진 To-Do 삭제
+  const todoList = await col.find({}).toArray();
+
+  res.send(todoList);
+}

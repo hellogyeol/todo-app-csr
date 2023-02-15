@@ -8,11 +8,19 @@
   <script defer src="./index.js"></script>
 </head>
 <body>
-  <h1>To-Do App</h1>
+  <h1>To-Do App (CSR)</h1>
+
+  <!-- 사용자 입력 받기 -->
   <form action="/todo" method="post" class="form">
     <input type="text" class="input" required>
   </form>
-  <ul class="ul"></ul>
-  <button class="btn">Clear</button>
+
+  <!-- To-Do 목록 -->
+  <ul class="ul">
+    <!-- JS가 동적으로 목록 생성 -->
+  </ul>
+
+  <!-- To-Do 목록 초기화 -->
+  <button class="clear-btn">Clear</button>
 </body>
 </html>
